@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// comando para mirealizar la migracion del schema 
+// yarn prisma migrate dev --name usuarios
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Roles {
+  SUPER
+  ADMIN
+  USER
+}
+
+enum IsActive {
+  ACTIVO
+  INACTIVO
+}
+
+enum OrderStatus {
+  PENDING
+  DELIVERED
+  CANCELLED
+}
+
+enum MetodOfPay {
+  EFECTIVO
+  TRANSFERENCIA
+  DATAFONO
+}
+
+model Usuarios {
+  id       String @id @default(uuid())
+  nombre   String
+  apellido String
+  email    String @unique
+  password String
+
+  rol    Roles    @default(USER)
+  activo IsActive @default(ACTIVO)
+
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+
+  productos Productos[]
+
+  @@index([activo])
+}
+
+model Productos {
+  id         Int     @id @default(autoincrement())
+  name       String
+  price      Float
+  disponible Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItem OrderItem[]
+
+  Usuarios   Usuarios? @relation(fields: [usuariosId], references: [id])
+  usuariosId String?
+
+  @@index([disponible])
+}
+
+model Ordenes {
+  id          String    @id @default(uuid())
+  totalCuenta Float
+  totalItems  Int
+
+  status OrderStatus    @default(PENDING)
+  pagado Boolean        @default(false)
+  metodOfPay MetodOfPay @default(EFECTIVO) 
+  paidAt DateTime?
+
+  createdAt DateTime    @default(now())
+  updateAt  DateTime    @updatedAt
+
+  // con shif + option + F me agrega la relacion al model OrderItem
+  OrderItem OrderItem[]
+  @@index([pagado])
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+  quantity Int
+  price    Float
+
+  Ordenes     Ordenes?   @relation(fields: [orderId], references: [id])
+  orderId     String?
+  Productos   Productos? @relation(fields: [productosId], references: [id])
+  productosId Int?
+}

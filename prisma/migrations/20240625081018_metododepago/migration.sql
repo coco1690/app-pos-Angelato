@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "MetodOfPay" AS ENUM ('EFECTIVO', 'TRANSFERENCIA', 'DATAFONO');
+
+-- AlterTable
+ALTER TABLE "Ordenes" ADD COLUMN     "metodOfPay" "MetodOfPay" NOT NULL DEFAULT 'EFECTIVO';
