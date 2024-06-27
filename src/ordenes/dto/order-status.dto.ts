@@ -1,6 +1,6 @@
-import { OrderStatus } from "@prisma/client"
-import { IsBoolean, IsEnum } from "class-validator"
-import { OrderStatusList } from "../enum/enum.order"
+import { MetodOfPay, OrderStatus } from "@prisma/client"
+import { IsEnum, IsOptional } from "class-validator"
+import { MetodOfPayList, OrderStatusList } from "../enum"
 
 
 
@@ -13,4 +13,9 @@ export class OrderStatusDto{
     })
     status: OrderStatus
 
+    @IsOptional()
+    @IsEnum( MetodOfPayList, {
+        message: `Status validos ${ MetodOfPayList }`
+    })
+    metodOfPay: MetodOfPay
 }

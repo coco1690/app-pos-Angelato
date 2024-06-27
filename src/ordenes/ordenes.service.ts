@@ -2,8 +2,9 @@
 
 import { BadRequestException, Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateOrderDto, OrderPaginationDto, OrderStatusDto } from './dto';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, MetodOfPay } from '@prisma/client';
 import { ProductosService } from 'src/productos/productos.service';
+
 
 
 
@@ -192,18 +193,24 @@ export class OrdenesService extends PrismaClient implements OnModuleInit {
   
   async updateStatus( id: string,  orderStatusDto: OrderStatusDto){
 
-    const { status } = orderStatusDto
+    const { status, metodOfPay } = orderStatusDto
     
     //NOTA: SIEMPRE MANDAR EL THIS.FINDONE PARA SABER SI EL ID EXISTE
     const order = await this.findOne( id )
-    if( status === order.status ) {
+    if( status === order.status && metodOfPay === order.metodOfPay ) {
       return order
     }
 
+    if( status === 'CANCELLED'){
+     
     return this.ordenes.update({
-       where: { id:id }, 
-       data:  { status: status } 
+       where: { id }, 
+       data:  { status, metodOfPay, pagado:true} 
       })
-    
+    }
+    return this.ordenes.update({
+      where: { id }, 
+      data:  { status, metodOfPay, pagado:false} 
+     })
   }
 }

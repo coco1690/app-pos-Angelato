@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseBoolPipe } from '@nestjs/common';
 import { OrdenesService } from './ordenes.service';
 import { CreateOrderDto, OrderPaginationDto, OrderStatusDto, UpdateOrderDto } from './dto';
 
@@ -23,7 +23,7 @@ export class OrdenesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() orderStatusDto: OrderStatusDto) {
+  update(@Param('id')  id: string, @Body() orderStatusDto: OrderStatusDto) {
     return this.ordenesService.updateStatus( id, orderStatusDto);
   }
 
