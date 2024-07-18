@@ -3,6 +3,8 @@ import { ProductosModule } from './productos/productos.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { OrdenesModule } from './ordenes/ordenes.module';
 import { ConfigModule } from '@nestjs/config';
+import { ImagesModule } from './images/images.module';
+
 
 
 @Module({
@@ -10,7 +12,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({ isGlobal:true}),
     ProductosModule, 
     UsuariosModule, 
-    OrdenesModule
+    OrdenesModule, ImagesModule, 
   ],
   controllers: [],
   providers: [],

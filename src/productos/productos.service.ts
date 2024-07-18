@@ -1,12 +1,30 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
+import { PrismaClient} from '@prisma/client';
 import { PaginacionDto } from 'src/common/paginacion.dto';
 import { CreateProductoDto, UpdateProductoDto } from './dto';
+import { v2 as cloudinary } from 'cloudinary';
+import { envs } from 'src/config';
+import { ConfigService } from '@nestjs/config';
+
+
 
 @Injectable()
 export class ProductosService extends PrismaClient implements OnModuleInit{
 
   private readonly logger = new Logger('ProductosService')
+
+  constructor(
+    // @Inject(ImagesService) private readonly imageService:ImagesService
+    private configService:ConfigService
+    
+  ){
+    super();
+    cloudinary.config({
+      cloud_name: envs.cloud_name,
+      api_key: envs.api_key,
+      api_secret: envs.api_secret,
+    });
+  }
 
   async onModuleInit() {
    await this.$connect()
@@ -16,10 +34,34 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
 
   // #################  ME CREA EL PRODUCTO  #######################
 
-  async create(createProductoDto: CreateProductoDto) {
-    return await this.productos.create({
-      data: createProductoDto
-    })
+  async create( file: Express.Multer.File, createProductoDto: CreateProductoDto) {
+    
+    
+    try {
+     
+      const { images=[], ...dataCreate} = createProductoDto 
+    
+      const product = await this.productos.create({
+        data:{
+          ...dataCreate,         
+          images: {
+            create:  {url: file.path }
+          },
+        },
+        include:{
+          images:{ 
+            select:{url:true}
+          }
+        }
+      });
+   
+        return product 
+         
+
+    } catch (error) {
+      await this.deleteImage( file.filename);
+      throw new BadRequestException({ message: `El producto ya existe es DB`})
+    }   
   }
 
 
@@ -36,6 +78,11 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
        skip:( page - 1 ) * limit,
        take: limit,
        where:{ disponible: true},
+       include:{
+        images:{ 
+          select:{url:true}
+        }
+      }
       }),
       meta: {
         total: totalPages,
@@ -52,7 +99,12 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
     const productId =  await this.productos.findFirst({ 
       where:{ 
         id: id,
-        disponible: true, 
+        disponible: true,
+      },
+      include:{
+        images:{ 
+          select:{url:true}
+        }
       }
     })
     if( !productId )
@@ -69,7 +121,7 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
 
   async update(id: number, updateProductoDto: UpdateProductoDto) {
 
-    const {...data } = updateProductoDto
+    const { images=[],...data } = updateProductoDto
 
   
     await this.findOne( id );
@@ -119,6 +171,17 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
 
       return products
    }
+
+
+   //  ##################  METODO PARA ELIMINAR IMAGEN DE CLOUDINARY ###############
+
+   async deleteImage(publicId: string): Promise<void> {
+    try {
+      await cloudinary.uploader.destroy(publicId);
+    } catch (error) {
+      throw new HttpException('Failed to delete image', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
 
    // ###################  METODO PRIVADO PARA MANEJO DE ERRORES ################### 

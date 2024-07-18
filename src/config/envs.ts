@@ -3,10 +3,20 @@ import * as joi from 'joi';
 
 interface EnvVars {
   PORT: number;
+  //  CLOUDINARY_URL:string
+  CLOUDINARY_CLOUD_NAME: string;
+  CLAOUDINARY_API_KEY:   string;
+  CLOUDINARY_API_SECRET: string;
+
 }
 
 const envsSchema = joi.object({
   PORT: joi.number().required(),
+  // CLOUDINARY_URL: joi.string().required(),
+  CLOUDINARY_CLOUD_NAME: joi.string().required(),
+  CLAOUDINARY_API_KEY:   joi.string().required(),
+  CLOUDINARY_API_SECRET: joi.string().required(),
+
 })
 .unknown(true);
 
@@ -21,4 +31,8 @@ const envVars:EnvVars = value;
 
 export const envs = {
   port: envVars.PORT,
+  // cloud_url: envVars.CLOUDINARY_URL,
+  cloud_name: envVars.CLOUDINARY_CLOUD_NAME,
+  api_key:    envVars.CLAOUDINARY_API_KEY,
+  api_secret: envVars.CLOUDINARY_API_SECRET
 }

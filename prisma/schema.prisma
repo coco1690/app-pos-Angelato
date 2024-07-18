@@ -59,7 +59,7 @@ model Usuarios {
 
 model Productos {
   id         Int     @id @default(autoincrement())
-  name       String
+  name       String  @unique()
   price      Float
   disponible Boolean @default(true)
 
@@ -67,6 +67,7 @@ model Productos {
   updatedAt DateTime @updatedAt
 
   orderItem OrderItem[]
+  images    Images[]
 
   Usuarios   Usuarios? @relation(fields: [usuariosId], references: [id])
   usuariosId String?
@@ -75,30 +76,39 @@ model Productos {
 }
 
 model Ordenes {
-  id          String    @id @default(uuid())
+  id          String @id @default(uuid())
   totalCuenta Float
   totalItems  Int
 
-  status OrderStatus    @default(PENDING)
-  pagado Boolean        @default(false)
-  metodOfPay MetodOfPay @default(EFECTIVO) 
-  paidAt DateTime?
+  status     OrderStatus @default(PENDING)
+  pagado     Boolean     @default(false)
+  metodOfPay MetodOfPay  @default(EFECTIVO)
+  paidAt     DateTime?
 
-  createdAt DateTime    @default(now())
-  updateAt  DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
 
   // con shif + option + F me agrega la relacion al model OrderItem
   OrderItem OrderItem[]
+
   @@index([pagado])
 }
 
 model OrderItem {
-  id String @id @default(uuid())
+  id       String @id @default(uuid())
   quantity Int
   price    Float
 
   Ordenes     Ordenes?   @relation(fields: [orderId], references: [id])
   orderId     String?
+  Productos   Productos? @relation(fields: [productosId], references: [id])
+  productosId Int?
+}
+
+model Images {
+  id  Int    @id @default(autoincrement())
+  url String
+
   Productos   Productos? @relation(fields: [productosId], references: [id])
   productosId Int?
 }

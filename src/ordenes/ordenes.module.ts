@@ -6,7 +6,6 @@ import { ProductosModule } from 'src/productos/productos.module';
 @Module({
   controllers: [OrdenesController],
   providers: [OrdenesService],
-  // exports: [OrdenesService],
   imports:[ProductosModule]
 })
 export class OrdenesModule {}

@@ -1,16 +1,53 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
 import { ProductosService } from './productos.service';
 import { PaginacionDto } from 'src/common/paginacion.dto';
 import { CreateProductoDto, UpdateProductoDto } from './dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+
+ 
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+});
+ 
 
 @Controller('productos')
 export class ProductosController {
-  constructor(private readonly productosService: ProductosService) {}
-
+  constructor(
+    private readonly productosService: ProductosService,
+  ) {}
+  
+  
   @Post()
-  create(@Body() createProductoDto: CreateProductoDto) {
-    return this.productosService.create(createProductoDto);
+  @UseInterceptors( FileInterceptor(  'file', {storage} ))
+  async uploadImage( 
+    @Body() createProductoDto: CreateProductoDto, //body: SampleDto
+    @UploadedFile(
+      new ParseFilePipeBuilder().addFileTypeValidator({  
+        fileType: /(jpg|jpeg|png)$/,           
+      })
+      .build({
+        // exceptionFactory: error =>{ return new BadRequestException('el archivo es requerido')},
+        fileIsRequired: true,
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+      })
+    ) file: Express.Multer.File
+  ){
+    
+    console.log( {file: file.path, fileId: file.filename });
+    return this.productosService.create( file , createProductoDto);
+    
+    
+    // const fileExtension = file.mimetype.split('/')[1];
+    // console.log(fileExtension);
+    // const fileName = `${uuid()}.${fileExtension}`
+    // console.log({ nameFile: fileName});
+    // return { 
+    //   url: file.path 
+    // }
   }
+
 
   @Get()
   findAll(@Query() paginacionDto: PaginacionDto) {

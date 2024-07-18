@@ -1,5 +1,8 @@
+import { Images } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsNumber, IsString, Min } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString, Min, ValidateNested } from "class-validator";
+
+
 
 export class CreateProductoDto {
 
@@ -10,4 +13,10 @@ export class CreateProductoDto {
     @Min(0)
     @Type( () => Number )
     public price: number;
+
+    @IsArray()
+    @IsOptional( )
+    images?: Images[]
+
+
 }
