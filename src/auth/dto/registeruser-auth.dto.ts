@@ -1,10 +1,12 @@
 import { IsActive, Roles } from "@prisma/client"
-import { IsEmail, IsEnum, IsOptional, IsString, Matches, MaxLength, MinLength, IsBoolean } from 'class-validator';
-import { ListadoDeRoles } from "../enum/enum.roles"
-import { ListaIsActive } from "../enum/enum.isactive";
+import { IsEmail, IsEnum, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator"
+import { ListadoDeRoles, ListaIsActive } from "src/usuarios/enum"
 
-export class CreateUsuarioDto {
 
+
+export class RegisterAuthDto {
+
+    
     @IsString()
     @IsEmail()
     email:string
@@ -34,7 +36,7 @@ export class CreateUsuarioDto {
     rol: Roles
 
     @IsEnum( ListaIsActive,{
-         message: ` ${ ListaIsActive }`
+         message: `Posible roles ${ ListadoDeRoles }`
     })
     @IsOptional()
     activo: IsActive

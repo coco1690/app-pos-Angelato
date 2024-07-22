@@ -1,17 +1,16 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Inject, Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
 
 import { PrismaClient, Productos } from '@prisma/client';
 import * as bcrypt from 'bcrypt' //yarn add -D @types/bcrypt
 
 import { CreateUsuarioDto, PaginacionPorRolesDto, StatusUsuarioDto, UpdateUsuarioDto } from './dto';
-import { ProductosModule } from '../productos/productos.module';
 import { ProductosService } from 'src/productos/productos.service';
 
 
 
 @Injectable()
 export class UsuariosService extends PrismaClient implements OnModuleInit{
-  
+
   private readonly logger = new Logger('UsuariosService')
 
   constructor(
@@ -28,41 +27,53 @@ export class UsuariosService extends PrismaClient implements OnModuleInit{
 
   // !!!!!!!!!!!! CREO USUARIOS !!!!!!!!!!!!!
 
-   create(createUsuarioDto: CreateUsuarioDto) {
+   async create(createUsuarioDto: CreateUsuarioDto) {
 
-    try {
-     
-      const {  password, ...datosUsuario} = createUsuarioDto
-      const nuevoUsuario =  this.usuarios.create({ 
+      const {  password, email, ...datosUsuario} = createUsuarioDto
+
+  // $$$$$$ VALIDAMOS SI EL EMAIL EXISTE $$$$$$$$$
+      const user = await this.usuarios.findUnique({
+        where:{
+         email: email,
+       }
+    })
+
+    if( user ){
+        throw new BadRequestException({message:`El usuario ${email} ya existe en la DB`, status: HttpStatus.BAD_REQUEST} )
+      }  
+
+      const nuevoUsuario = await this.usuarios.create({ 
         data:{ 
           ...datosUsuario, 
-          password: bcrypt.hashSync(password, 10)
-          
-        },
+          email: email,
+          password: bcrypt.hashSync(password, 10)       
+         },
+         select:{
+          id:true, nombre: true, apellido:true, email:true, rol:true, activo:true
+         }
        });
        
-      return nuevoUsuario;
-
-    } catch (error) {
-     
-       this.handleDBExeptions(error)
-    }  
-  }
+          return {
+            usuario: nuevoUsuario,
+            token:'abc'
+          }
+      
+  } 
 
 
   // !!!!!!!!!!!! ME RETORNA TODOS LOS USUARIOS POR BUSQUEDA !!!!!!!!!!!!!
 
   async findAll( paginacionPorRolesDto: PaginacionPorRolesDto) {
     
-    const { page, limit, rol} = paginacionPorRolesDto;
-    const paginasTotales = await this.usuarios.count( { where: { activo:'ACTIVO', rol }}) 
+    const { page, limit } = paginacionPorRolesDto;
+    const paginasTotales = await this.usuarios.count( { where: { activo:'ACTIVO' }}) 
     const ultimaPagina = Math.ceil( paginasTotales / limit );
   
     return {
       data: await this.usuarios.findMany({
         skip: ( page - 1 ) * limit,
         take: limit,
-        where: { activo:'ACTIVO', rol  },
+        where: { activo:'ACTIVO'},
         select:{
           id: true,
           nombre: true,
@@ -82,7 +93,7 @@ export class UsuariosService extends PrismaClient implements OnModuleInit{
   }
 
 
-  // !!!!!!!!!!!! ME RETORNA UN USUARIO POR BUSQUEDA POR ID Y EMAIL  !!!!!!!!!!!!!
+  // !!!!!!!!!!!! ME RETORNA UN USUARIO POR BUSQUEDA POR ID  !!!!!!!!!!!!!
 
   async findOne(term: string) {
 
@@ -131,6 +142,7 @@ export class UsuariosService extends PrismaClient implements OnModuleInit{
    const  inactiveUser =  await this.findOne( term );
    
    const { activo } = statusUsuarioDto
+
    if( activo === inactiveUser.activo ) {
      return inactiveUser
     }
@@ -142,10 +154,7 @@ export class UsuariosService extends PrismaClient implements OnModuleInit{
   }
 
 
-
-
   
-
    // ###################  METODO PRIVADO PARA MANEJO DE ERRORES ################### 
 
    private handleDBExeptions(error: any){

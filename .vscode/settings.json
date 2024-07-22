@@ -1,5 +1,5 @@
 {
-    "workbench.colorTheme": "Dracula",
+    "workbench.colorTheme": "Dracula Theme",
     "editor.tokenColorCustomizations": {
         "comments": "#9d9d9d"       
     }

@@ -1,6 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, ParseBoolPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto, PaginacionPorRolesDto, StatusUsuarioDto, UpdateUsuarioDto } from './dto';
+import { Auth } from 'src/auth/decorator/auth.decorator';
+import { ValidRoles } from 'src/auth/interface/valid-roles';
+
+
+
 
 
 
@@ -11,10 +16,13 @@ export class UsuariosController {
   @Post()
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
     return this.usuariosService.create(createUsuarioDto);
-  }
 
+  }
+ 
   @Get()
-  findAll(@Query() paginacionPorRolesDto: PaginacionPorRolesDto) {
+  @Auth( ValidRoles.ADMIN )
+  findAll(
+    @Query() paginacionPorRolesDto: PaginacionPorRolesDto) {
     return this.usuariosService.findAll(paginacionPorRolesDto);
   }
 

@@ -4,6 +4,7 @@ import { UsuariosModule } from './usuarios/usuarios.module';
 import { OrdenesModule } from './ordenes/ordenes.module';
 import { ConfigModule } from '@nestjs/config';
 import { ImagesModule } from './images/images.module';
+import { AuthModule } from './auth/auth.module';
 
 
 
@@ -12,7 +13,7 @@ import { ImagesModule } from './images/images.module';
     ConfigModule.forRoot({ isGlobal:true}),
     ProductosModule, 
     UsuariosModule, 
-    OrdenesModule, ImagesModule, 
+    OrdenesModule, ImagesModule, AuthModule, 
   ],
   controllers: [],
   providers: [],
