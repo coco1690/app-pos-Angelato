@@ -1,9 +1,10 @@
 import { BadRequestException, HttpStatus, Injectable, Logger, OnModuleInit, UnauthorizedException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Usuarios } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt' //yarn add -D @types/bcrypt
 
 import { LoginAuthDto, RegisterAuthDto } from './dto';
+import { JwtPayload } from './interface/jwt-payload.interface';
 
 
 @Injectable()
@@ -51,7 +52,7 @@ export class AuthService extends PrismaClient implements OnModuleInit{
           const payLoad = { id: nuevoUsuario.id, name: nuevoUsuario.nombre }
             return {
               usuario: nuevoUsuario,
-              token: this.jwtService.sign(payLoad),
+              token: this.getJwToken(payLoad),
             }
   }
 
@@ -79,9 +80,30 @@ export class AuthService extends PrismaClient implements OnModuleInit{
 
             return {
               usuario: rest,
-              token: this.jwtService.sign(payLoad),
+              token: this.getJwToken(payLoad),
             }
   }
+
+
+   // ######### ENVIO LOS DATOS DE USUSARIO CON UN NUEVO TOKEN AL FRONTEND ########
+
+   async checkAuthStatus( user: Usuarios){
+
+    const {createdAt:_, updateAt:__, password:___, ...rest } = user;
+    return {
+      ...rest,
+      token: this.getJwToken( { id: user.id })
+    }
+  }
+
+   //###########   methods   ####################
+
+   private getJwToken( payload:JwtPayload){
+
+    //GENERO EL TOKEN
+    const token = this.jwtService.sign( payload )
+    return token
+}
 
  
 }

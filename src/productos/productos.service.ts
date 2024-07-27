@@ -1,10 +1,11 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
-import { PrismaClient} from '@prisma/client';
+import { BadRequestException, HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
+import { PrismaClient, Usuarios} from '@prisma/client';
 import { PaginacionDto } from 'src/common/paginacion.dto';
 import { CreateProductoDto, UpdateProductoDto } from './dto';
 import { v2 as cloudinary } from 'cloudinary';
 import { envs } from 'src/config';
 import { ConfigService } from '@nestjs/config';
+import { UsuariosService } from 'src/usuarios/usuarios.service';
 
 
 
@@ -14,7 +15,7 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
   private readonly logger = new Logger('ProductosService')
 
   constructor(
-    // @Inject(ImagesService) private readonly imageService:ImagesService
+    @Inject(UsuariosService) private readonly usuariosService:UsuariosService,
     private configService:ConfigService
     
   ){
@@ -34,7 +35,7 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
 
   // #################  ME CREA EL PRODUCTO  #######################
 
-  async create( file: Express.Multer.File, createProductoDto: CreateProductoDto) {
+  async create( file: Express.Multer.File, createProductoDto: CreateProductoDto, user: Usuarios ) {
     
     
     try {
@@ -42,8 +43,10 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
       const { images=[], ...dataCreate} = createProductoDto 
     
       const product = await this.productos.create({
-        data:{
-          ...dataCreate,         
+      
+        data:{    
+          ...dataCreate,
+          usuariosId: user.id,
           images: {
             create:  {url: file.path }
           },
@@ -54,8 +57,9 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
           }
         }
       });
+       
    
-        return product 
+        return product
          
 
     } catch (error) {
@@ -170,6 +174,28 @@ export class ProductosService extends PrismaClient implements OnModuleInit{
       }
 
       return products
+   }
+
+   // ############## TRER PRODUCTOS POR USUARIOSID ##################
+
+   async productUserId( userId: string  ){
+
+    // this.usuariosService.findOne( userId )
+
+    const productUserId = await this.productos.findMany({
+
+      where:{ 
+        usuariosId: userId
+       }
+       
+    })
+    // if(!user){
+    //   throw new BadRequestException(`User with ${user.id} not found`)
+    // }
+
+    return productUserId
+    
+
    }
 
 

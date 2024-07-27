@@ -4,7 +4,7 @@ import { PrismaClient, Productos } from '@prisma/client';
 import * as bcrypt from 'bcrypt' //yarn add -D @types/bcrypt
 
 import { CreateUsuarioDto, PaginacionPorRolesDto, StatusUsuarioDto, UpdateUsuarioDto } from './dto';
-import { ProductosService } from 'src/productos/productos.service';
+
 
 
 
@@ -14,7 +14,7 @@ export class UsuariosService extends PrismaClient implements OnModuleInit{
   private readonly logger = new Logger('UsuariosService')
 
   constructor(
-    @Inject( ProductosService ) private readonly productosClient: Productos
+    // @Inject( ProductosService ) private readonly productosClient: Productos
   ){
     super();
   }
@@ -81,6 +81,7 @@ export class UsuariosService extends PrismaClient implements OnModuleInit{
           email: true,
           rol: true,
           activo: true,
+          productos:true
         }      
       }),
       meta: {
